@@ -7,6 +7,12 @@
 ]]
 local __DEV__ = _G.__DEV__
 
+local _, FFlagRoduxRemoveConnectTraceback = xpcall(function()
+	return game:DefineFastFlag("RoduxRemoveConnectTraceback", false)
+end, function()
+	return true
+end)
+
 local function immutableAppend(list, ...)
 	local new = {}
 	local len = #list
@@ -53,7 +59,7 @@ function Signal.new(store: Store?)
 	local self = {
 		_listeners = {},
 		_store = store,
-		_changedEvent = Instance.new("BindableEvent")
+		_changedEvent = Instance.new("BindableEvent"),
 	}
 
 	setmetatable(self, Signal)
@@ -81,7 +87,7 @@ function Signal:connect(callback)
 		disconnectTraceback = nil,
 	}
 
-	if __DEV__ then
+	if not FFlagRoduxRemoveConnectTraceback or __DEV__ then
 		listener.connectTraceback = debug.traceback()
 	end
 
@@ -101,7 +107,7 @@ function Signal:connect(callback)
 			error("You may not unsubscribe from a store listener while the reducer is executing.")
 		end
 
-		if __DEV__ then
+		if not FFlagRoduxRemoveConnectTraceback or __DEV__ then
 			listener.disconnectTraceback = debug.traceback()
 		end
 
